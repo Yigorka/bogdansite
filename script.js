@@ -17,31 +17,23 @@ const auth = firebase.auth();
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 
+// Вхід
 loginBtn.addEventListener("click", () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
   auth.signInWithEmailAndPassword(email, password)
-    .then(() => {
-      document.getElementById("loginContainer").style.display = "none";
-      document.getElementById("calendarContainer").style.display = "block";
-      document.body.classList.remove("login-active"); // прибрати фон
-      loadCalendar(); // завантаження календаря
-    })
     .catch((error) => {
       alert("Помилка входу: " + error.message);
     });
 });
 
+// Вихід
 logoutBtn.addEventListener("click", () => {
-  auth.signOut().then(() => {
-    document.getElementById("loginContainer").style.display = "block";
-    document.getElementById("calendarContainer").style.display = "none";
-    document.body.classList.add("login-active"); // знову додати фон
-  });
+  auth.signOut();
 });
 
-// ---------- Календар ----------
+// -------- Календар --------
 
 const calendar = document.getElementById("calendar");
 let currentDate = new Date();
@@ -191,3 +183,17 @@ function getCalendarDataFromFirebase() {
     }
   });
 }
+
+// -------- Автоматичне оновлення інтерфейсу при вході/виході --------
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById("loginContainer").style.display = "none";
+    document.getElementById("calendarContainer").style.display = "block";
+    document.body.classList.remove("login-active");
+    loadCalendar();
+  } else {
+    document.getElementById("loginContainer").style.display = "block";
+    document.getElementById("calendarContainer").style.display = "none";
+    document.body.classList.add("login-active");
+  }
+});
