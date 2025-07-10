@@ -38,7 +38,7 @@ function addMonth(year, month) {
     day.className = "day";
     day.textContent = d;
 
-    const key = ${year}-${month}-${d};
+    const key = `${year}-${month}-${d}`;
     const status = localStorage.getItem(key);
     if (status) {
       day.classList.add(status);
@@ -94,17 +94,17 @@ function openStatusModal(year, month, dayNum, dayElement) {
 
   const content = document.createElement("div");
   content.className = "modal-content";
-  content.innerHTML = 
+  content.innerHTML = `
     <h3>Вибери статус</h3>
     <button id="fullDay">Цілий день</button>
     <button id="halfDay">Пів дня</button>
     <button id="clear">Очистити</button>
-  ;
+  `;
 
   modal.appendChild(content);
   document.body.appendChild(modal);
 
-  const key = ${year}-${month}-${dayNum};
+  const key = `${year}-${month}-${dayNum}`;
 
   document.getElementById("fullDay").onclick = () => {
     localStorage.setItem(key, "full");
