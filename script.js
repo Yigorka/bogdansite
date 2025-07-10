@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBd9HRH02unYa80SKmCPZ1TxiiSXpVJv_I",
@@ -12,125 +12,144 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
+const db = getDatabase(app);
 
-document.addEventListener("DOMContentLoaded", () => {
-  const calendarEl = document.getElementById("calendar");
-  const modal = document.getElementById("colorModal");
-  const greenBtn = document.getElementById("greenBtn");
-  const redBtn = document.getElementById("redBtn");
-  const clearBtn = document.getElementById("clearBtn");
-  const closeModal = document.querySelector(".close");
+const calendar = document.getElementById("calendar");
+let currentDate = new Date();
+let currentYear = currentDate.getFullYear();
+let currentMonth = currentDate.getMonth();
+let cellMap = {};
 
-  let selectedCell = null;
-  let cellMap = {}; // Для швидкого доступу до клітинок
+function addMonth(year, month) {
+  const monthBlock = document.createElement("div");
+  monthBlock.className = "month-block";
 
-  function createCalendar(monthOffset = 0) {
-    const now = new Date();
-    now.setMonth(now.getMonth() + monthOffset);
-    const year = now.getFullYear();
-    const month = now.getMonth();
+  const monthName = document.createElement("div");
+  monthName.className = "month-name";
+  monthName.textContent = getMonthName(month) + " " + year;
+  monthBlock.appendChild(monthName);
 
-    const firstDay = new Date(year, month, 1).getDay();
-    const lastDate = new Date(year, month + 1, 0).getDate();
+  const daysGrid = document.createElement("div");
+  daysGrid.className = "days-grid";
 
-    const calendar = document.createElement("div");
-    calendar.className = "calendar-month";
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  for (let d = 1; d <= daysInMonth; d++) {
+    const day = document.createElement("div");
+    day.className = "day";
+    day.textContent = d;
 
-    const title = document.createElement("h3");
-    title.textContent = now.toLocaleString("uk-UA", {
-      year: "numeric",
-      month: "long",
+    const key = `${year}-${month}-${d}`;
+    const status = localStorage.getItem(key);
+    if (status) {
+      day.classList.add(status);
+    }
+
+    day.addEventListener("click", () => {
+      document.querySelectorAll(".day").forEach(d => d.classList.remove("selected"));
+      day.classList.add("selected");
+      openStatusModal(year, month, d, day);
     });
-    calendar.appendChild(title);
 
-    const table = document.createElement("table");
-    const daysRow = document.createElement("tr");
-    ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"].forEach((day) => {
-      const th = document.createElement("th");
-      th.textContent = day;
-      daysRow.appendChild(th);
-    });
-    table.appendChild(daysRow);
+    daysGrid.appendChild(day);
+    cellMap[key] = day;
+  }
 
-    let date = 1;
-    for (let i = 0; i < 6; i++) {
-      const row = document.createElement("tr");
-      for (let j = 1; j <= 7; j++) {
-        const cell = document.createElement("td");
-        if ((i === 0 && j < (firstDay || 7)) || date > lastDate) {
-          cell.textContent = "";
-        } else {
-          cell.textContent = date;
-          const fullDate = `${year}-${month + 1}-${date}`;
-          cell.dataset.date = fullDate;
-          cellMap[fullDate] = cell;
+  monthBlock.appendChild(daysGrid);
+  calendar.appendChild(monthBlock);
+}
 
-          // Відновлення з LocalStorage
-          const savedColor = localStorage.getItem(fullDate);
-          if (savedColor) cell.style.backgroundColor = savedColor;
+function getMonthName(month) {
+  const months = [
+    "Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень",
+    "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"
+  ];
+  return months[month];
+}
 
-          cell.addEventListener("click", () => {
-            selectedCell = cell;
-            modal.style.display = "block";
-          });
+// Рендер перших двох місяців
+for (let i = 0; i <= 1; i++) {
+  let tempMonth = (currentMonth + i) % 12;
+  let tempYear = currentYear + Math.floor((currentMonth + i) / 12);
+  addMonth(tempYear, tempMonth);
+}
+currentMonth = (currentMonth + 2) % 12;
+if (currentMonth < 2) currentYear++;
 
-          date++;
+// Нескінченний скрол
+window.addEventListener("scroll", () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+    addMonth(currentYear, currentMonth);
+    currentMonth++;
+    if (currentMonth > 11) {
+      currentMonth = 0;
+      currentYear++;
+    }
+  }
+});
+
+function openStatusModal(year, month, dayNum, dayElement) {
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  modal.style.display = "block";
+
+  const content = document.createElement("div");
+  content.className = "modal-content";
+  content.innerHTML = `
+    <h3>Вибери статус</h3>
+    <button id="fullDay">Цілий день</button>
+    <button id="halfDay">Пів дня</button>
+    <button id="clear">Очистити</button>
+  `;
+
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+
+  const key = `${year}-${month}-${dayNum}`;
+
+  document.getElementById("fullDay").onclick = () => {
+    localStorage.setItem(key, "full");
+    set(ref(db, 'calendarData/' + key), "full");
+    dayElement.classList.remove("half");
+    dayElement.classList.add("full");
+    closeModal(modal);
+  };
+
+  document.getElementById("halfDay").onclick = () => {
+    localStorage.setItem(key, "half");
+    set(ref(db, 'calendarData/' + key), "half");
+    dayElement.classList.remove("full");
+    dayElement.classList.add("half");
+    closeModal(modal);
+  };
+
+  document.getElementById("clear").onclick = () => {
+    localStorage.removeItem(key);
+    set(ref(db, 'calendarData/' + key), null);
+    dayElement.classList.remove("full", "half");
+    closeModal(modal);
+  };
+
+  window.onclick = e => {
+    if (e.target == modal) closeModal(modal);
+  };
+}
+
+function closeModal(modal) {
+  modal.remove();
+}
+
+// Завантаження з Firebase → localStorage
+get(child(ref(db), 'calendarData')).then(snapshot => {
+  if (snapshot.exists()) {
+    const data = snapshot.val();
+    for (let key in data) {
+      const status = data[key];
+      if (status) {
+        localStorage.setItem(key, status);
+        if (cellMap[key]) {
+          cellMap[key].classList.add(status);
         }
-        row.appendChild(cell);
       }
-      table.appendChild(row);
     }
-
-    calendar.appendChild(table);
-    calendarEl.appendChild(calendar);
   }
-
-  function save(date, color) {
-    localStorage.setItem(date, color === "clear" ? "" : getColorCode(color));
-    push(ref(database, "calendarData"), {
-      date,
-      color,
-      timestamp: Date.now(),
-    });
-    console.log("📤 Збережено:", date, color);
-  }
-
-  function getColorCode(color) {
-    if (color === "green") return "#4caf50";
-    if (color === "red") return "#f44336";
-    return "";
-  }
-
-  greenBtn.onclick = () => {
-    if (selectedCell) {
-      selectedCell.style.backgroundColor = getColorCode("green");
-      save(selectedCell.dataset.date, "green");
-    }
-    modal.style.display = "none";
-  };
-
-  redBtn.onclick = () => {
-    if (selectedCell) {
-      selectedCell.style.backgroundColor = getColorCode("red");
-      save(selectedCell.dataset.date, "red");
-    }
-    modal.style.display = "none";
-  };
-
-  clearBtn.onclick = () => {
-    if (selectedCell) {
-      selectedCell.style.backgroundColor = "";
-      save(selectedCell.dataset.date, "clear");
-    }
-    modal.style.display = "none";
-  };
-
-  closeModal.onclick = () => (modal.style.display = "none");
-  window.onclick = (e) => {
-    if (e.target == modal) modal.style.display = "none";
-  };
-
-  createCalendar(0);
-  createCalendar(1);
 });
