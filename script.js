@@ -10,18 +10,12 @@ let currentMonth = currentDate.getMonth();
 function saveToGoogleSheets(date, color) {
   fetch(GOOGLE_SHEETS_WEB_APP_URL, {
     method: 'POST',
+    mode: 'no-cors', // Обхід CORS-проблем
     body: JSON.stringify({ date: date, color: color }),
     headers: { 'Content-Type': 'application/json' }
   })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === 'success') {
-        console.log('Дані збережено в Google Sheets:', date, color);
-      } else {
-        console.error('Помилка збереження в Google Sheets:', data.message);
-      }
-    })
-    .catch(error => console.error('Помилка:', error));
+  .then(() => console.log('Дані відправлено в Google Sheets:', date, color))
+  .catch(error => console.error('Помилка:', error));
 }
 
 // Синхронізація localStorage з Google Sheets
