@@ -1,21 +1,84 @@
+/* --------- Загальні стилі --------- */
 body {
   margin: 0;
+  padding: 0;
   font-family: 'Segoe UI', sans-serif;
-  background: #f7f7f7;
-  color: #000;
+  background: url("back.jpg") no-repeat center center fixed;
+  background-size: cover;
+  color: #333;
   min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
-/* --------- Header --------- */
+/* --------- Центрування логіну --------- */
+#loginContainer {
+  max-width: 250px;
+  width: 90%;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  margin-top: 60px;
+}
+
+#loginContainer h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #222;
+}
+
+/* --------- Поля вводу --------- */
+#loginContainer input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 14px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+#loginContainer input:focus {
+  border-color: #4caf50;
+  outline: none;
+}
+
+/* --------- Кнопка логіну --------- */
+#loginContainer button {
+  width: 70%;
+  padding: 12px;
+  background: #5194d7;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+#loginContainer button:hover {
+  background: #3877bf;
+}
+
+/* --------- Календар --------- */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
+  padding: 12px 16px;
+  background: #fff;
   border-bottom: 1px solid #ddd;
   position: sticky;
   top: 0;
-  background: #fff;
+  width: 100%;
   z-index: 10;
 }
 
@@ -28,7 +91,7 @@ body {
   padding: 6px 12px;
   font-size: 14px;
   background: #f44336;
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -38,7 +101,7 @@ body {
   background: #d32f2f;
 }
 
-/* --------- Month view --------- */
+/* --------- Календарний блок --------- */
 .month-block {
   padding: 10px 14px;
   border-bottom: 1px solid #eee;
@@ -78,7 +141,7 @@ body {
 }
 
 .day.selected {
-  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
 }
 
 .day.full {
@@ -93,7 +156,7 @@ body {
   font-weight: bold;
 }
 
-/* --------- Modal --------- */
+/* --------- Модальне вікно --------- */
 .modal {
   display: none;
   position: fixed;
@@ -157,60 +220,7 @@ body {
   background: #ccc;
 }
 
-/* --------- Login Form --------- */
-.login-card {
-  max-width: 320px;
-  margin: 80px auto;
-  padding: 24px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.login-card h2 {
-  margin-bottom: 20px;
-  font-size: 22px;
-  color: #333;
-}
-
-.login-card input {
-  width: 100%;
-  max-width: 260px;
-  padding: 12px;
-  margin-bottom: 16px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.login-card input:focus {
-  outline: none;
-  border-color: #4caf50;
-}
-
-.login-card button {
-  width: 100%;
-  max-width: 260px;
-  padding: 12px;
-  background: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.login-card button:hover {
-  background: #43a047;
-}
-
-/* --------- Mobile --------- */
+/* --------- Mobile адаптація --------- */
 @media (max-width: 600px) {
   .days-grid {
     max-width: 310px;
@@ -228,8 +238,8 @@ body {
     max-width: 260px;
   }
 
-  .login-card {
-    margin: 40px auto;
+  #loginContainer {
+    margin-top: 40px;
     padding: 20px;
   }
 }

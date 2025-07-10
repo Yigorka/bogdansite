@@ -1,24 +1,28 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Мій Календар</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BogdanSite</title>
+  <link rel="stylesheet" href="style.css" />
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth-compat.js"></script>
 </head>
+
 <body>
 
-  <!-- Форма входу -->
-  <div id="loginContainer" class="login-card">
-    <h2>Вхід до календаря</h2>
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Пароль" />
-    <button id="loginBtn">Увійти</button>
+  <!-- ЛОГІН -->
+  <div id="loginContainer" class="terminal-box">
+    <h1>Авторизація?<br>
+
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="password" placeholder="Password" />
+      <button id="loginBtn">Увійти</button>
+
   </div>
 
   <!-- Календар -->
@@ -32,4 +36,5 @@
 
   <script src="script.js"></script>
 </body>
+
 </html>
