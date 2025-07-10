@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-// Firebase конфіг
 const firebaseConfig = {
   apiKey: "AIzaSyBd9HRH02unYa80SKmCPZ1TxiiSXpVJv_I",
   authDomain: "bogdan-fbabf.firebaseapp.com",
@@ -14,109 +13,151 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
+const db = getDatabase(app);
 
-function saveToFirebase(date, color) {
-  const dataRef = ref(database, 'calendarData');
-  push(dataRef, { date, color, timestamp: Date.now() });
-  console.log("📤 Firebase:", date, color);
+const calendar = document.getElementById("calendar");
+let currentDate = new Date();
+let currentYear = currentDate.getFullYear();
+let currentMonth = currentDate.getMonth();
+
+function saveToBoth(key, value) {
+  localStorage.setItem(key, value);
+  set(ref(db, 'calendarData/' + key), value);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const calendarEl = document.getElementById("calendar");
-  const modal = document.getElementById("colorModal");
-  const greenBtn = document.getElementById("greenBtn");
-  const redBtn = document.getElementById("redBtn");
-  const clearBtn = document.getElementById("clearBtn");
-  const closeModal = document.querySelector(".close");
+function removeFromBoth(key) {
+  localStorage.removeItem(key);
+  set(ref(db, 'calendarData/' + key), null);
+}
 
-  let selectedCell = null;
+function applyStatusToDay(day, key) {
+  const status = localStorage.getItem(key);
+  if (status) {
+    day.classList.add(status);
+  }
+}
 
-  function createCalendar(monthOffset = 0) {
-    const now = new Date();
-    now.setMonth(now.getMonth() + monthOffset);
-    const year = now.getFullYear();
-    const month = now.getMonth();
+function addMonth(year, month) {
+  const monthBlock = document.createElement("div");
+  monthBlock.className = "month-block";
 
-    const firstDay = new Date(year, month, 1).getDay();
-    const lastDate = new Date(year, month + 1, 0).getDate();
+  const monthName = document.createElement("div");
+  monthName.className = "month-name";
+  monthName.textContent = getMonthName(month) + " " + year;
+  monthBlock.appendChild(monthName);
 
-    const calendar = document.createElement("div");
-    calendar.className = "calendar-month";
+  const daysGrid = document.createElement("div");
+  daysGrid.className = "days-grid";
 
-    const title = document.createElement("h3");
-    title.textContent = now.toLocaleString("uk-UA", {
-      year: "numeric",
-      month: "long",
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  for (let d = 1; d <= daysInMonth; d++) {
+    const day = document.createElement("div");
+    day.className = "day";
+    day.textContent = d;
+
+    const key = `${year}-${month}-${d}`;
+    applyStatusToDay(day, key);
+
+    day.addEventListener("click", () => {
+      document.querySelectorAll(".day").forEach(d => d.classList.remove("selected"));
+      day.classList.add("selected");
+      openStatusModal(year, month, d, day);
     });
-    calendar.appendChild(title);
 
-    const table = document.createElement("table");
-    const daysRow = document.createElement("tr");
-    ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"].forEach((day) => {
-      const th = document.createElement("th");
-      th.textContent = day;
-      daysRow.appendChild(th);
-    });
-    table.appendChild(daysRow);
-
-    let date = 1;
-    for (let i = 0; i < 6; i++) {
-      const row = document.createElement("tr");
-      for (let j = 1; j <= 7; j++) {
-        const cell = document.createElement("td");
-        if ((i === 0 && j < (firstDay || 7)) || date > lastDate) {
-          cell.textContent = "";
-        } else {
-          cell.textContent = date;
-          const fullDate = `${year}-${month + 1}-${date}`;
-          cell.dataset.date = fullDate;
-
-          cell.addEventListener("click", () => {
-            selectedCell = cell;
-            modal.style.display = "block";
-          });
-
-          date++;
-        }
-        row.appendChild(cell);
-      }
-      table.appendChild(row);
-    }
-
-    calendar.appendChild(table);
-    calendarEl.appendChild(calendar);
+    daysGrid.appendChild(day);
   }
 
-  createCalendar(0);
-  createCalendar(1); // наступний місяць
+  monthBlock.appendChild(daysGrid);
+  calendar.appendChild(monthBlock);
+}
 
-  closeModal.onclick = () => (modal.style.display = "none");
-  window.onclick = (e) => {
-    if (e.target == modal) modal.style.display = "none";
-  };
+function getMonthName(month) {
+  const months = [
+    "Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень",
+    "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"
+  ];
+  return months[month];
+}
 
-  greenBtn.onclick = () => {
-    if (selectedCell) {
-      selectedCell.style.backgroundColor = "#4caf50";
-      saveToFirebase(selectedCell.dataset.date, "green");
+for (let i = 0; i <= 1; i++) {
+  let tempMonth = (currentMonth + i) % 12;
+  let tempYear = currentYear + Math.floor((currentMonth + i) / 12);
+  addMonth(tempYear, tempMonth);
+}
+
+currentMonth = (currentMonth + 2) % 12;
+if (currentMonth < 2) currentYear++;
+
+window.addEventListener("scroll", () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+    addMonth(currentYear, currentMonth);
+    currentMonth++;
+    if (currentMonth > 11) {
+      currentMonth = 0;
+      currentYear++;
     }
-    modal.style.display = "none";
+  }
+});
+
+function openStatusModal(year, month, dayNum, dayElement) {
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  modal.style.display = "block";
+
+  const content = document.createElement("div");
+  content.className = "modal-content";
+  content.innerHTML = `
+    <h3>Вибери статус</h3>
+    <button id="fullDay">Цілий день</button>
+    <button id="halfDay">Пів дня</button>
+    <button id="clear">Очистити</button>
+  `;
+
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+
+  const key = `${year}-${month}-${dayNum}`;
+
+  document.getElementById("fullDay").onclick = () => {
+    saveToBoth(key, "full");
+    dayElement.classList.remove("half");
+    dayElement.classList.add("full");
+    closeModal(modal);
   };
 
-  redBtn.onclick = () => {
-    if (selectedCell) {
-      selectedCell.style.backgroundColor = "#f44336";
-      saveToFirebase(selectedCell.dataset.date, "red");
-    }
-    modal.style.display = "none";
+  document.getElementById("halfDay").onclick = () => {
+    saveToBoth(key, "half");
+    dayElement.classList.remove("full");
+    dayElement.classList.add("half");
+    closeModal(modal);
   };
 
-  clearBtn.onclick = () => {
-    if (selectedCell) {
-      selectedCell.style.backgroundColor = "";
-      saveToFirebase(selectedCell.dataset.date, "clear");
-    }
-    modal.style.display = "none";
+  document.getElementById("clear").onclick = () => {
+    removeFromBoth(key);
+    dayElement.classList.remove("full", "half");
+    closeModal(modal);
   };
+
+  window.onclick = e => {
+    if (e.target == modal) closeModal(modal);
+  };
+}
+
+function closeModal(modal) {
+  modal.remove();
+}
+
+// 🔄 Завантаження даних з Firebase → localStorage → оновлення інтерфейсу
+get(child(ref(db), 'calendarData')).then(snapshot => {
+  if (snapshot.exists()) {
+    const data = snapshot.val();
+    for (let key in data) {
+      if (data[key]) {
+        localStorage.setItem(key, data[key]);
+      } else {
+        localStorage.removeItem(key);
+      }
+    }
+    location.reload();
+  }
 });

@@ -1,4 +1,3 @@
-/* Загальні стилі */
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
@@ -6,7 +5,6 @@ body {
   color: #000;
 }
 
-/* Хедер */
 .header {
   display: flex;
   align-items: center;
@@ -25,7 +23,6 @@ body {
   font-size: 20px;
 }
 
-/* Блок місяця */
 .month-block {
   padding: 10px 14px;
   border-bottom: 1px solid #eee;
@@ -37,7 +34,6 @@ body {
   text-align: center;
 }
 
-/* Сітка днів */
 .days-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -47,27 +43,13 @@ body {
   margin: 0 auto;
 }
 
-/* Дні тижня */
-.weekdays {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  text-align: center;
-  gap: 6px;
-  max-width: 340px;
-  margin: 0 auto 8px auto;
-  font-size: 12px;
-  color: #666;
-}
-
-/* День */
 .day {
   padding: 12px 0;
   border: 1px solid #eee;
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  position: relative;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  transition: background 0.2s, color 0.2s;
   width: 40px;
   height: 40px;
   display: flex;
@@ -77,26 +59,24 @@ body {
 
 .day:hover {
   background: #f5f5f5;
-  box-shadow: 0 0 4px rgba(0,0,0,0.1);
 }
 
 .day.selected {
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+.day.full {
+  background: #4caf50;
+  color: #fff;
+  font-weight: bold;
+}
+
+.day.half {
   background: #e53935;
   color: #fff;
   font-weight: bold;
 }
 
-.day.green {
-  background: #4caf50;
-  color: #fff;
-}
-
-.day.red {
-  background: rgba(229, 57, 53, 0.5);
-  color: #fff;
-}
-
-/* Модальне вікно */
 .modal {
   display: none;
   position: fixed;
@@ -112,85 +92,58 @@ body {
   background: #fff;
   margin: 80px auto;
   padding: 20px;
-  max-width: 350px;
+  max-width: 300px;
   border-radius: 12px;
-  box-shadow: 0 4px 16-rgba(0,0,0,0.2);
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 
 .modal-content h3 {
   margin-top: 0;
   font-size: 18px;
-  text-align: center;
+  margin-bottom: 14px;
 }
 
-.close {
-  float: right;
-  cursor: pointer;
-  font-size: 20px;
-}
-
-button {
+.modal-content button {
   padding: 10px 20px;
-  background: #e53935;
-  color: #fff;
+  margin: 8px 4px;
   border: none;
   border-radius: 6px;
-  cursor: pointer;
   font-size: 14px;
-  transition: background 0.2s;
-  margin: 5px;
+  cursor: pointer;
 }
 
-button:hover {
-  background: #d32f2f;
-}
-
-#greenBtn {
+#fullDay {
   background: #4caf50;
+  color: #fff;
 }
 
-#greenBtn:hover {
+#halfDay {
+  background: #e53935;
+  color: #fff;
+}
+
+#clear {
+  background: #ddd;
+  color: #333;
+}
+
+#fullDay:hover {
   background: #43a047;
 }
 
-#redBtn {
-  background: #e53935;
-}
-
-#redBtn:hover {
+#halfDay:hover {
   background: #d32f2f;
 }
 
-#clearBtn {
-  background: #757575;
+#clear:hover {
+  background: #ccc;
 }
 
-#clearBtn:hover {
-  background: #616161;
-}
-
-/* Адаптація для мобільних */
 @media (max-width: 600px) {
-  body {
-    padding: 0 8px;
-  }
-
-  .header h1 {
-    font-size: 18px;
-  }
-
-  .month-name {
-    font-size: 16px;
-  }
-
   .days-grid {
     max-width: 310px;
     gap: 5px;
-  }
-
-  .weekdays {
-    max-width: 310px;
-    font-size: 11px;
   }
 
   .day {
@@ -200,8 +153,7 @@ button:hover {
     height: 36px;
   }
 
-  button {
-    padding: 8px 16px;
-    font-size: 13px;
+  .modal-content {
+    max-width: 260px;
   }
 }
