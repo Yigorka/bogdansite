@@ -1,6 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
-
+// Firebase конфіг
 const firebaseConfig = {
   apiKey: "AIzaSyBd9HRH02unYa80SKmCPZ1TxiiSXpVJv_I",
   authDomain: "bogdan-fbabf.firebaseapp.com",
@@ -11,8 +9,9 @@ const firebaseConfig = {
   appId: "1:613317674051:web:56c679e573c6be86b680f6"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+// Ініціалізація
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 const calendar = document.getElementById("calendar");
 let currentDate = new Date();
@@ -66,7 +65,7 @@ function getMonthName(month) {
   return months[month];
 }
 
-// Рендер перших двох місяців
+// Показуємо перші два місяці
 for (let i = 0; i <= 1; i++) {
   let tempMonth = (currentMonth + i) % 12;
   let tempYear = currentYear + Math.floor((currentMonth + i) / 12);
@@ -108,7 +107,7 @@ function openStatusModal(year, month, dayNum, dayElement) {
 
   document.getElementById("fullDay").onclick = () => {
     localStorage.setItem(key, "full");
-    set(ref(db, 'calendarData/' + key), "full");
+    db.ref('calendarData/' + key).set("full");
     dayElement.classList.remove("half");
     dayElement.classList.add("full");
     closeModal(modal);
@@ -116,7 +115,7 @@ function openStatusModal(year, month, dayNum, dayElement) {
 
   document.getElementById("halfDay").onclick = () => {
     localStorage.setItem(key, "half");
-    set(ref(db, 'calendarData/' + key), "half");
+    db.ref('calendarData/' + key).set("half");
     dayElement.classList.remove("full");
     dayElement.classList.add("half");
     closeModal(modal);
@@ -124,7 +123,7 @@ function openStatusModal(year, month, dayNum, dayElement) {
 
   document.getElementById("clear").onclick = () => {
     localStorage.removeItem(key);
-    set(ref(db, 'calendarData/' + key), null);
+    db.ref('calendarData/' + key).remove();
     dayElement.classList.remove("full", "half");
     closeModal(modal);
   };
@@ -139,17 +138,13 @@ function closeModal(modal) {
 }
 
 // Завантаження з Firebase → localStorage
-get(child(ref(db), 'calendarData')).then(snapshot => {
-  if (snapshot.exists()) {
-    const data = snapshot.val();
-    for (let key in data) {
-      const status = data[key];
-      if (status) {
-        localStorage.setItem(key, status);
-        if (cellMap[key]) {
-          cellMap[key].classList.add(status);
-        }
-      }
+db.ref('calendarData').once('value').then(snapshot => {
+  const data = snapshot.val();
+  for (let key in data) {
+    const status = data[key];
+    localStorage.setItem(key, status);
+    if (cellMap[key]) {
+      cellMap[key].classList.add(status);
     }
   }
 });
