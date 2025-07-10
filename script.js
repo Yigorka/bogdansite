@@ -1,140 +1,124 @@
-const calendar = document.getElementById("calendar");
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-const ORIGINAL_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxnjyvas0m4_8_0q5pBWpRzDS-bI9X9prhUB_-FMDKeTi-ci1S-7Nbh6le1Gd1cqh8w4Q/exec';
-const GOOGLE_SHEETS_WEB_APP_URL = 'https://corsproxy.io/?' + encodeURIComponent(ORIGINAL_WEB_APP_URL);
+// Firebase конфіг
+const firebaseConfig = {
+  apiKey: "AIzaSyBd9HRH02unYa80SKmCPZ1TxiiSXpVJv_I",
+  authDomain: "bogdan-fbabf.firebaseapp.com",
+  databaseURL: "https://bogdan-fbabf-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "bogdan-fbabf",
+  storageBucket: "bogdan-fbabf.firebasestorage.app",
+  messagingSenderId: "613317674051",
+  appId: "1:613317674051:web:56c679e573c6be86b680f6",
+  measurementId: "G-4CW4T1P3WY"
+};
 
-function saveToGoogleSheets(date, color) {
-  fetch(GOOGLE_SHEETS_WEB_APP_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ date: date, color: color })
-  })
-    .then(res => res.text())
-    .then(text => console.log('Відповідь від Google Sheets:', text))
-    .catch(error => console.error('Помилка:', error));
-}
+// Ініціалізація
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
 
-let currentDate = new Date();
-let currentYear = currentDate.getFullYear();
-let currentMonth = currentDate.getMonth();
+// ======= твій календарний код =========
+document.addEventListener("DOMContentLoaded", () => {
+  const calendarEl = document.getElementById("calendar");
+  const modal = document.getElementById("colorModal");
+  const greenBtn = document.getElementById("greenBtn");
+  const redBtn = document.getElementById("redBtn");
+  const clearBtn = document.getElementById("clearBtn");
+  const closeModal = document.querySelector(".close");
 
-function addMonth(year, month) {
-  const monthBlock = document.createElement("div");
-  monthBlock.className = "month-block";
+  let selectedCell = null;
 
-  const monthName = document.createElement("div");
-  monthName.className = "month-name";
-  monthName.textContent = getMonthName(month) + " " + year;
-  monthBlock.appendChild(monthName);
+  function createCalendar(monthOffset = 0) {
+    const now = new Date();
+    now.setMonth(now.getMonth() + monthOffset);
+    const year = now.getFullYear();
+    const month = now.getMonth();
 
-  const weekdays = document.createElement("div");
-  weekdays.className = "weekdays";
-  const weekdayNames = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
-  for (let i = 0; i < 7; i++) {
-    const weekday = document.createElement("div");
-    weekday.textContent = weekdayNames[i];
-    weekdays.appendChild(weekday);
-  }
-  monthBlock.appendChild(weekdays);
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
 
-  const daysGrid = document.createElement("div");
-  daysGrid.className = "days-grid";
+    const calendar = document.createElement("div");
+    calendar.className = "calendar-month";
 
-  const firstDay = new Date(year, month, 1).getDay();
-  const offset = firstDay === 0 ? 6 : firstDay - 1;
-  for (let i = 0; i < offset; i++) {
-    const emptyDay = document.createElement("div");
-    emptyDay.className = "day";
-    daysGrid.appendChild(emptyDay);
-  }
-
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  for (let d = 1; d <= daysInMonth; d++) {
-    const day = document.createElement("div");
-    day.className = "day";
-    day.textContent = d;
-
-    const key = `${year}-${month}-${d}`;
-    const color = localStorage.getItem(key);
-    if (color) {
-      day.classList.add(color);
-    }
-
-    day.addEventListener("click", () => {
-      document.querySelectorAll(".day").forEach(d => d.classList.remove("selected"));
-      day.classList.add("selected");
-      openColorModal(year, month, d, day);
+    const title = document.createElement("h3");
+    title.textContent = now.toLocaleString("uk-UA", {
+      year: "numeric",
+      month: "long",
     });
+    calendar.appendChild(title);
 
-    daysGrid.appendChild(day);
-  }
+    const table = document.createElement("table");
+    const daysRow = document.createElement("tr");
+    ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"].forEach((day) => {
+      const th = document.createElement("th");
+      th.textContent = day;
+      daysRow.appendChild(th);
+    });
+    table.appendChild(daysRow);
 
-  monthBlock.appendChild(daysGrid);
-  calendar.appendChild(monthBlock);
-}
+    let date = 1;
+    for (let i = 0; i < 6; i++) {
+      const row = document.createElement("tr");
+      for (let j = 1; j <= 7; j++) {
+        const cell = document.createElement("td");
+        if ((i === 0 && j < (firstDay || 7)) || date > lastDate) {
+          cell.textContent = "";
+        } else {
+          cell.textContent = date;
+          const fullDate = `${year}-${month + 1}-${date}`;
+          cell.dataset.date = fullDate;
 
-function getMonthName(month) {
-  const months = [
-    "Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень",
-    "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"
-  ];
-  return months[month];
-}
+          cell.addEventListener("click", () => {
+            selectedCell = cell;
+            modal.style.display = "block";
+          });
 
-for (let i = 0; i <= 1; i++) {
-  let tempMonth = (currentMonth + i) % 12;
-  let tempYear = currentYear + Math.floor((currentMonth + i) / 12);
-  addMonth(tempYear, tempMonth);
-}
-currentMonth = (currentMonth + 2) % 12;
-if (currentMonth < 2) currentYear++;
-
-window.addEventListener("scroll", () => {
-  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-    addMonth(currentYear, currentMonth);
-    currentMonth++;
-    if (currentMonth > 11) {
-      currentMonth = 0;
-      currentYear++;
+          date++;
+        }
+        row.appendChild(cell);
+      }
+      table.appendChild(row);
     }
+
+    calendar.appendChild(table);
+    calendarEl.appendChild(calendar);
   }
-});
 
-function openColorModal(year, month, dayNum, dayElement) {
-  let modal = document.getElementById("colorModal");
+  createCalendar(0);
+  createCalendar(1); // наступний місяць
 
-  modal.style.display = "block";
-
-  modal.querySelector(".close").onclick = () => {
-    modal.style.display = "none";
-  };
-
-  window.onclick = e => {
+  closeModal.onclick = () => (modal.style.display = "none");
+  window.onclick = (e) => {
     if (e.target == modal) modal.style.display = "none";
   };
 
-  const key = `${year}-${month}-${dayNum}`;
+  function saveToFirebase(date, color) {
+    const dataRef = ref(database, 'calendarData');
+    push(dataRef, { date, color, timestamp: Date.now() });
+    console.log("Збережено в Firebase:", date, color);
+  }
 
-  modal.querySelector("#greenBtn").onclick = () => {
-    dayElement.classList.remove("red", "green");
-    dayElement.classList.add("green");
-    localStorage.setItem(key, "green");
-    saveToGoogleSheets(key, "green");
+  greenBtn.onclick = () => {
+    if (selectedCell) {
+      selectedCell.style.backgroundColor = "#4caf50";
+      saveToFirebase(selectedCell.dataset.date, "green");
+    }
     modal.style.display = "none";
   };
 
-  modal.querySelector("#redBtn").onclick = () => {
-    dayElement.classList.remove("red", "green");
-    dayElement.classList.add("red");
-    localStorage.setItem(key, "red");
-    saveToGoogleSheets(key, "red");
+  redBtn.onclick = () => {
+    if (selectedCell) {
+      selectedCell.style.backgroundColor = "#f44336";
+      saveToFirebase(selectedCell.dataset.date, "red");
+    }
     modal.style.display = "none";
   };
 
-  modal.querySelector("#clearBtn").onclick = () => {
-    dayElement.classList.remove("red", "green");
-    localStorage.removeItem(key);
-    saveToGoogleSheets(key, "");
+  clearBtn.onclick = () => {
+    if (selectedCell) {
+      selectedCell.style.backgroundColor = "";
+      saveToFirebase(selectedCell.dataset.date, "clear");
+    }
     modal.style.display = "none";
   };
-}
+});
