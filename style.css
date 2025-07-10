@@ -1,13 +1,14 @@
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
-  background: #fff;
+  background: #f7f7f7;
   color: #000;
 }
 
 .header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 10px 12px;
   border-bottom: 1px solid #ddd;
   position: sticky;
@@ -17,10 +18,22 @@ body {
 }
 
 .header h1 {
-  flex: 1;
-  text-align: center;
   margin: 0;
   font-size: 20px;
+}
+
+#logoutBtn {
+  padding: 6px 12px;
+  font-size: 14px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#logoutBtn:hover {
+  background: #d32f2f;
 }
 
 .month-block {
@@ -157,17 +170,52 @@ body {
     max-width: 260px;
   }
 }
-#logoutBtn {
-  padding: 6px 12px;
-  font-size: 14px;
-  background: #f44336;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-left: auto;
+
+/* ---- Форма входу ---- */
+
+.login-card {
+  max-width: 320px;
+  margin: 80px auto;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
-#logoutBtn:hover {
-  background: #d32f2f;
+.login-card h2 {
+  margin-bottom: 20px;
+  font-size: 22px;
+  color: #333;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: #4caf50;
+}
+
+.login-card button {
+  width: 100%;
+  padding: 12px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.login-card button:hover {
+  background: #43a047;
 }
