@@ -1,17 +1,8 @@
 const calendar = document.getElementById("calendar");
 
-// ⚠️ ВСТАВ СЮДИ СВІЙ Google Web App URL
 const ORIGINAL_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxnjyvas0m4_8_0q5pBWpRzDS-bI9X9prhUB_-FMDKeTi-ci1S-7Nbh6le1Gd1cqh8w4Q/exec';
-
-// Додаємо corsproxy
 const GOOGLE_SHEETS_WEB_APP_URL = 'https://corsproxy.io/?' + encodeURIComponent(ORIGINAL_WEB_APP_URL);
 
-// Стартові дата
-let currentDate = new Date();
-let currentYear = currentDate.getFullYear();
-let currentMonth = currentDate.getMonth();
-
-// Відправка даних до Google Sheets
 function saveToGoogleSheets(date, color) {
   fetch(GOOGLE_SHEETS_WEB_APP_URL, {
     method: 'POST',
@@ -19,23 +10,14 @@ function saveToGoogleSheets(date, color) {
     body: JSON.stringify({ date: date, color: color })
   })
     .then(res => res.text())
-    .then(text => console.log('✅ Відповідь від Google Sheets:', text))
-    .catch(error => console.error('❌ Помилка:', error));
+    .then(text => console.log('Відповідь від Google Sheets:', text))
+    .catch(error => console.error('Помилка:', error));
 }
 
-// Синхронізація localStorage з Google Sheets
-function syncLocalStorageToGoogleSheets() {
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.match(/\d{4}-\d{1,2}-\d{1,2}/)) {
-      const color = localStorage.getItem(key);
-      saveToGoogleSheets(key, color || "");
-    }
-  }
-  console.log("Синхронізацію завершено");
-}
+let currentDate = new Date();
+let currentYear = currentDate.getFullYear();
+let currentMonth = currentDate.getMonth();
 
-// Додає місяць у календар
 function addMonth(year, month) {
   const monthBlock = document.createElement("div");
   monthBlock.className = "month-block";
@@ -45,7 +27,6 @@ function addMonth(year, month) {
   monthName.textContent = getMonthName(month) + " " + year;
   monthBlock.appendChild(monthName);
 
-  // Додавання назв днів тижня
   const weekdays = document.createElement("div");
   weekdays.className = "weekdays";
   const weekdayNames = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
