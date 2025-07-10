@@ -13,11 +13,15 @@ const firebaseConfig = {
   measurementId: "G-4CW4T1P3WY"
 };
 
-// Ініціалізація
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-// ======= твій календарний код =========
+function saveToFirebase(date, color) {
+  const dataRef = ref(database, 'calendarData');
+  push(dataRef, { date, color, timestamp: Date.now() });
+  console.log("📤 Firebase:", date, color);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const calendarEl = document.getElementById("calendar");
   const modal = document.getElementById("colorModal");
@@ -91,12 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.onclick = (e) => {
     if (e.target == modal) modal.style.display = "none";
   };
-
-  function saveToFirebase(date, color) {
-    const dataRef = ref(database, 'calendarData');
-    push(dataRef, { date, color, timestamp: Date.now() });
-    console.log("Збережено в Firebase:", date, color);
-  }
 
   greenBtn.onclick = () => {
     if (selectedCell) {
