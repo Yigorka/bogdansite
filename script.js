@@ -1,5 +1,10 @@
 const calendar = document.getElementById("calendar");
-const GOOGLE_SHEETS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxnjyvas0m4_8_0q5pBWpRzDS-bI9X9prhUB_-FMDKeTi-ci1S-7Nbh6le1Gd1cqh8w4Q/exec'; // Онови цей URL, якщо він змінився
+
+// ⚠️ ВСТАВ СЮДИ СВІЙ Google Web App URL
+const ORIGINAL_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxnjyvas0m4_8_0q5pBWpRzDS-bI9X9prhUB_-FMDKeTi-ci1S-7Nbh6le1Gd1cqh8w4Q/exec';
+
+// Додаємо corsproxy
+const GOOGLE_SHEETS_WEB_APP_URL = 'https://corsproxy.io/?' + encodeURIComponent(ORIGINAL_WEB_APP_URL);
 
 // Стартові дата
 let currentDate = new Date();
@@ -10,11 +15,12 @@ let currentMonth = currentDate.getMonth();
 function saveToGoogleSheets(date, color) {
   fetch(GOOGLE_SHEETS_WEB_APP_URL, {
     method: 'POST',
-    body: JSON.stringify({ date: date, color: color }),
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date: date, color: color })
   })
-    .then(() => console.log('Дані відправлено в Google Sheets:', date, color))
-    .catch(error => console.error('Помилка:', error));
+    .then(res => res.text())
+    .then(text => console.log('✅ Відповідь від Google Sheets:', text))
+    .catch(error => console.error('❌ Помилка:', error));
 }
 
 // Синхронізація localStorage з Google Sheets
@@ -53,9 +59,8 @@ function addMonth(year, month) {
   const daysGrid = document.createElement("div");
   daysGrid.className = "days-grid";
 
-  // Додавання порожніх клітинок для вирівнювання першого дня
   const firstDay = new Date(year, month, 1).getDay();
-  const offset = firstDay === 0 ? 6 : firstDay - 1; // Починати з понеділка
+  const offset = firstDay === 0 ? 6 : firstDay - 1;
   for (let i = 0; i < offset; i++) {
     const emptyDay = document.createElement("div");
     emptyDay.className = "day";
@@ -68,14 +73,12 @@ function addMonth(year, month) {
     day.className = "day";
     day.textContent = d;
 
-    // Застосувати колір із localStorage
     const key = `${year}-${month}-${d}`;
     const color = localStorage.getItem(key);
     if (color) {
       day.classList.add(color);
     }
 
-    // Натискання на день
     day.addEventListener("click", () => {
       document.querySelectorAll(".day").forEach(d => d.classList.remove("selected"));
       day.classList.add("selected");
@@ -89,7 +92,6 @@ function addMonth(year, month) {
   calendar.appendChild(monthBlock);
 }
 
-// Українські назви місяців
 function getMonthName(month) {
   const months = [
     "Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень",
@@ -98,18 +100,14 @@ function getMonthName(month) {
   return months[month];
 }
 
-// Додавання початкових місяців (поточний і наступний)
 for (let i = 0; i <= 1; i++) {
   let tempMonth = (currentMonth + i) % 12;
   let tempYear = currentYear + Math.floor((currentMonth + i) / 12);
   addMonth(tempYear, tempMonth);
 }
-
-// Оновлення currentMonth і currentYear після початкового виведення
 currentMonth = (currentMonth + 2) % 12;
 if (currentMonth < 2) currentYear++;
 
-// Безкінечний скрол вниз
 window.addEventListener("scroll", () => {
   if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
     addMonth(currentYear, currentMonth);
@@ -121,7 +119,6 @@ window.addEventListener("scroll", () => {
   }
 });
 
-// Відкриття модалки для вибору кольору
 function openColorModal(year, month, dayNum, dayElement) {
   let modal = document.getElementById("colorModal");
 
