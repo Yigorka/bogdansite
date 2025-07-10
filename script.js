@@ -1,5 +1,5 @@
 const calendar = document.getElementById("calendar");
-const GOOGLE_SHEETS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyi2B9Di1K6uckk1xMvcd604JSRxslSITnA-rEr40T-4AoV1NDVIkHcBeH-jSq9i4oU/exec';
+const GOOGLE_SHEETS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzqNi3ZxOY37f1-Jc2i5GT5narnl2KjEhb0mPu00HZhOlO1eBFG-B_KWXZg9CCoA3s-/exec';
 
 // Стартові дата
 let currentDate = new Date();
