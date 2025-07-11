@@ -17,23 +17,31 @@ const auth = firebase.auth();
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 
-// Вхід
 loginBtn.addEventListener("click", () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
   auth.signInWithEmailAndPassword(email, password)
+    .then(() => {
+      document.getElementById("loginContainer").style.display = "none";
+      document.getElementById("calendarContainer").style.display = "block";
+      document.body.classList.remove("login-active"); // прибрати фон
+      loadCalendar();
+    })
     .catch((error) => {
       alert("Помилка входу: " + error.message);
     });
 });
 
-// Вихід
 logoutBtn.addEventListener("click", () => {
-  auth.signOut();
+  auth.signOut().then(() => {
+    document.getElementById("loginContainer").style.display = "block";
+    document.getElementById("calendarContainer").style.display = "none";
+    document.body.classList.add("login-active"); // додати фон назад
+  });
 });
 
-// -------- Календар --------
+// ---------- Календар ----------
 
 const calendar = document.getElementById("calendar");
 let currentDate = new Date();
@@ -50,10 +58,33 @@ function addMonth(year, month) {
   monthName.textContent = getMonthName(month) + " " + year;
   monthBlock.appendChild(monthName);
 
+  // --- Дні тижня ---
+  const daysOfWeek = ["пн", "вт", "ср", "чт", "пт", "сб", "нд"];
+  const daysHeader = document.createElement("div");
+  daysHeader.className = "days-header";
+  daysOfWeek.forEach(dayName => {
+    const dayEl = document.createElement("div");
+    dayEl.className = "day-name";
+    dayEl.textContent = dayName;
+    daysHeader.appendChild(dayEl);
+  });
+  monthBlock.appendChild(daysHeader);
+
+  // --- Дні місяця ---
   const daysGrid = document.createElement("div");
   daysGrid.className = "days-grid";
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay(); // 0 = неділя
+  const startOffset = (firstDay + 6) % 7; // щоб пн був першим
+
+  for (let i = 0; i < startOffset; i++) {
+    const emptyCell = document.createElement("div");
+    emptyCell.className = "day";
+    emptyCell.style.visibility = "hidden";
+    daysGrid.appendChild(emptyCell);
+  }
+
   for (let d = 1; d <= daysInMonth; d++) {
     const day = document.createElement("div");
     day.className = "day";
@@ -183,17 +214,3 @@ function getCalendarDataFromFirebase() {
     }
   });
 }
-
-// -------- Автоматичне оновлення інтерфейсу при вході/виході --------
-auth.onAuthStateChanged(user => {
-  if (user) {
-    document.getElementById("loginContainer").style.display = "none";
-    document.getElementById("calendarContainer").style.display = "block";
-    document.body.classList.remove("login-active");
-    loadCalendar();
-  } else {
-    document.getElementById("loginContainer").style.display = "block";
-    document.getElementById("calendarContainer").style.display = "none";
-    document.body.classList.add("login-active");
-  }
-});
